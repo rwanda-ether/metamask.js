@@ -1,4 +1,8 @@
-//Time-stamp: <2018-10-30 00:34:52 hamada>
+//Time-stamp: <2018-10-30 01:42:51 hamada>
+
+var contractAddress = "0x7b3C93596C3e07F8AFd06a1e7aEd3F4fE2EF74B6"; // MAK
+var contractAbi = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"_spender","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Approval","type":"event"}];
+
 
 if( ('sessionStorage' in window) && (window.sessionStorage !== null) ) {
     console.log("SessionStorage: Available!");
@@ -21,8 +25,7 @@ window.addEventListener('load', () => {
 function onlyRopstenTestNetwork(callback) {
   web3.version.getNetwork((err, netId) => {
     if (netId === "3") {
-				//callback();
-				setInterval(callback, 5000);
+				callback();
     } else {
 				document.write("Please switch MetaMask to Ropsten Test Network and reload page.");
     }
@@ -33,15 +36,51 @@ function saveAccountInfo2storage(_account) {
 		web3.eth.getBalance(_account, (err, _wei) => {
 				if (err) return;
 				var v = web3.fromWei(_wei, "ether");
-				sessionStorage.clear();
 				sessionStorage.metamask_account = _account;
 				sessionStorage.metamask_balance = v;
 				console.log('v: '+v);
 		});
 }
 
+
+
+function initializeApp(account, contract, name, symbol, decimals, balance){
+		console.log("contract.address: " + contractAddress);
+		console.log("contract.name: " + name);
+		console.log("contract.symbol: " + symbol);
+		console.log("contract.decimals: " + Number(decimals));
+		console.log("contract.balance: " + Number(balance)/10**Number(decimals));
+		sessionStorage.metamask_ERC20_name = name;
+		sessionStorage.metamask_ERC20_symbol = symbol;
+		sessionStorage.metamask_ERC20_decimals = Number(decimals);
+		sessionStorage.metamask_ERC20_balance = Number(balance)/(10**Number(decimals));
+}
+
+
 function main() {
+		sessionStorage.clear();
+		mainLoop();
+		setInterval(mainLoop, 5000);
+}
+
+function mainLoop() {
 		var account = web3.eth.defaultAccount;
+		var contract = web3.eth.contract(contractAbi).at(contractAddress);
+
+		contract.name(function(err, name){
+				if(err) throw err;
+				contract.symbol(function(err, symbol){
+						if(err) throw err;
+						contract.decimals(function(err, decimals){
+								if(err) throw err;
+								contract.balanceOf(account, function(err, balance){
+										if(err) throw err;
+										initializeApp(account, contract, name, symbol, decimals, balance);
+								});
+						});
+				});
+		});
+
 		saveAccountInfo2storage(account);
 		var balance = sessionStorage.getItem('metamask_balance');
 		balance = Number(balance);
@@ -51,13 +90,27 @@ function main() {
 		var text02 = document.getElementById('text02');
 		var text03 = document.getElementById('text03');
 
-		if(balance >= 1.0){
+/**
+		sessionStorage.metamask_ERC20_name = name;
+		sessionStorage.metamask_ERC20_symbol = symbol;
+		sessionStorage.metamask_ERC20_decimals = Number(decimals);
+		sessionStorage.metamask_ERC20_balance = Number(balance)/10**Number(decimals);
+*/
+
+		var ERC20_name = sessionStorage.getItem('metamask_ERC20_name');
+		var ERC20_symbol = sessionStorage.getItem('metamask_ERC20_symbol');
+		var ERC20_decimals = sessionStorage.getItem('metamask_ERC20_decimals');
+		var ERC20_balance = sessionStorage.getItem('metamask_ERC20_balance');
+
+		console.log('ERC20_balance: '+ ERC20_balance);
+
+		if(ERC20_balance >= 1.0){
 				text01.textContent = 'Success!!';
 				text02.textContent = 'account: '+account;
-				text03.textContent = balance + " ETH";
+				text03.textContent = ERC20_balance + " " + ERC20_symbol;
 		}else{
 				text01.textContent = 'Failed...';
 				text02.textContent = 'account: '+account;
-				text03.textContent = "you only have "+balance+" ETH! not enough !!"
+				text03.textContent = "you only have "+ERC20_balance+" "+ERC20_symbol +"! not enough !!"
 		}
 }
