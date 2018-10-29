@@ -1,4 +1,4 @@
-//Time-stamp: <2018-10-30 00:28:02 hamada>
+//Time-stamp: <2018-10-30 00:34:52 hamada>
 
 if( ('sessionStorage' in window) && (window.sessionStorage !== null) ) {
     console.log("SessionStorage: Available!");
@@ -22,7 +22,7 @@ function onlyRopstenTestNetwork(callback) {
   web3.version.getNetwork((err, netId) => {
     if (netId === "3") {
 				//callback();
-				setInterval(callback, 300);
+				setInterval(callback, 5000);
     } else {
 				document.write("Please switch MetaMask to Ropsten Test Network and reload page.");
     }
@@ -51,7 +51,7 @@ function main() {
 		var text02 = document.getElementById('text02');
 		var text03 = document.getElementById('text03');
 
-		if(balance > 31.0){
+		if(balance >= 1.0){
 				text01.textContent = 'Success!!';
 				text02.textContent = 'account: '+account;
 				text03.textContent = balance + " ETH";
