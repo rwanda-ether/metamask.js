@@ -1,4 +1,4 @@
-//Time-stamp: <2018-10-30 17:16:20 hamada>
+//Time-stamp: <2018-10-30 17:18:55 hamada>
 
 //var contractAddress = "0x7b3C93596C3e07F8AFd06a1e7aEd3F4fE2EF74B6"; // MAK
 //var contractAddress = "0x3D854Bb187C4D38fc69a36f56e4F8ca7cAA247DF"; // But coin
@@ -121,7 +121,8 @@ function mainLoop() {
 				lamp.src = "./img/lamp-off.png";
 				text01.textContent = 'Failed...';
 				text02.textContent = 'account: '+account;
-				text03.textContent = "you only have "+ERC20_balance+" "+ERC20_symbol +"! not enough !!";
+				text03.textContent = "you only have "+ERC20_balance+" "+ERC20_symbol +"!\n";
+				text03.textContent += "send here one "+ERC20_name+" ("+ERC20_symbol+")\n";
 		}
 
 }
